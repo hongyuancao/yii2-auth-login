@@ -91,9 +91,9 @@ return [
 ```
 Array
 (
-    [open_id] => 1047776979*******
+    [open_id] => *******
     [email] => xxx@xxx.com    
-    [full_name] => Coeus Rowe
+    [full_name] => caohongyuan
     [image_url] => https://example.com/photo.jpg
 )
 ```
