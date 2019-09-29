@@ -17,7 +17,6 @@ class AuthInterface extends Component
         'linkedin' => LinkedIn::class,
         'twitter' => Twitter::class,
     ];
-    public $classModel;
 
     public function authClient($client = '')
     {
@@ -86,70 +85,4 @@ class AuthInterface extends Component
         return json_decode($data);
     }
 
-    public function saveUserInfo($google_userinfo)
-    {
-        if (!empty($google_userinfo)) {
-            $id = $google_userinfo->id;
-            $full_name = !empty($google_userinfo->name) ? $google_userinfo->name : '';
-            $email = !empty($google_userinfo->email) ? $google_userinfo->email : '';
-            $avatar = !empty($google_userinfo->picture) ? $google_userinfo->picture : '';
-            // $user_social_account = SocialAccount::findOne(['client_id' => $id]);
-            $proMark = User::getProductMark();
-            if ($proMark <= 3) {
-                $proMarkArr = [0, 1, 2, 3];
-            } else if ($proMark == 4 || $proMark == 9) {
-                $proMarkArr = [0, $proMark];
-            } else {
-                $proMarkArr = $proMark;
-            }
-            $user_social_account = SocialAccount::find()
-                ->from(SocialAccount::tableName() . ' as sa')
-                ->where(['sa.client_id' => $id, 'sa.type' => 3])
-                ->joinWith('user u')
-                ->andWhere(['u.product_mark' => $proMarkArr])
-                ->one();
-            if (!empty($user_social_account)) {
-                $user = User::findOne($user_social_account->user_id);
-                if (empty($user->status)) {
-                    return false;
-                }
-                $profile = Profile::findOne(['user_id' => $user->id]);
-                $profile->full_name = $full_name;
-                $profile->avatar = $avatar;
-                $profile->save();
-            } else {
-                $user = new User();
-                $user->username = $full_name;
-                $user->email = '';
-                $user->status = 1;
-                if ($user->save()) {
-                    $profile = Profile::findOne(['user_id' => $user->id]);
-                    if (empty($profile)) {
-                        $profile = new Profile();
-                        $profile->user_id = $user->id;
-                    }
-                    $profile->full_name = $full_name;
-                    $profile->avatar = $avatar;
-                    $profile->save();
-                    $social_account = SocialAccount::findOne(['user_id' => $user->id, 'client_id' => $id]);
-                    if (empty($social_account)) {
-                        $social_account = new SocialAccount();
-                        $social_account->user_id = $user->id;
-                        $social_account->client_id = $id;
-                        $social_account->type = 3;
-                        $social_account->email = $email;
-                        $social_account->username = $full_name;
-                        $social_account->save();
-                    }
-                }
-            }
-            $returnUrl = $this->performLogin($user);
-            Yii::info(Yii::$app->session, __METHOD__);
-            if (strpos(Yii::$app->request->hostInfo, "guangdada") || strpos(Yii::$app->request->hostInfo, "socialpeta")) {
-                return $this->redirect("/#/main");
-            }
-            return $this->redirect($returnUrl);
-        }
-        return '';
-    }
 }
