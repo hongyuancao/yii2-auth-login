@@ -1,6 +1,6 @@
 <?php
 
-namespace app\components\authClient;
+namespace app\components\authlogin;
 
 use Yii;
 use yii\base\Component;
